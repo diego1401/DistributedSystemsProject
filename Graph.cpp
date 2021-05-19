@@ -12,10 +12,12 @@ int main(){
     G->Nodes.push_back(2);
     G->Nodes.push_back(3);
 
-    G->Edges.push_back(e1);
-    G->Edges.push_back(e2);
-    G->Edges.push_back(e3);
-    G->Edges.push_back(e4);
+    // G->Edges.push_back(e1);
+    // G->Edges.push_back(e2);
+    // G->Edges.push_back(e3);
+    // G->Edges.push_back(e4);
+    std::vector<Edge> E = {e1,e2,e3,e4};
+    G->Edges = E;
     
     int * M = Adj_Matrix(G);
     print_matrix(M,G->Nodes.size());
