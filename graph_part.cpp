@@ -29,7 +29,9 @@ class TwoQueue{
             this->Q_p.pop();
             return j;
         }
-        return &Node(); //should never come here
+        Node* empty;
+        empty = new Node();
+        return empty; //should never come here
     }
 
     bool is_empty(){
@@ -44,6 +46,7 @@ int* Sequential_Dijkstra_Two_Queue(Graph* G, Node* s){
     for(int i=0;i<n;i++){
         d[i] = std::numeric_limits<int>::max();
     }
+    s->print();
     d[s->key] = 0;
     TwoQueue Q;
     Q.insert(s);
