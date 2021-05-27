@@ -39,7 +39,7 @@ class Graph{
     std::vector<Node> Nodes;
     std::vector<Edge> Edges;
     int number_nodes;
-    
+    Graph(){}
     Graph(std::string filename){
         this->number_nodes = 0;
         printf("Creating Graph\n");
@@ -101,6 +101,18 @@ class Graph{
             }
             file.close();
         }
+    }
+
+    void random_nodes(int N, int maxweights){
+        for (int i=0; i < N; i++){
+            int id1 = rand()% N +1; int id2 = rand()%N + 1; int w = rand()%(maxweights + 1);
+            std::cout << "From " << id2 << " to: " << id1 << " with weight " << w << std::endl;
+            Node*to = new Node(id1); Node *from = new Node(id2);
+            this->add_node(*to); this->add_node(*from);
+            Edge e = Edge(from, to, w);
+            this->Edges.push_back(e);
+        }
+        this->fill_neighbors();
     }
 
 };
