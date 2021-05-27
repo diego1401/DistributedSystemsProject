@@ -1,31 +1,41 @@
 #include"Graph.hpp"
 #include <queue>
 #include <limits>
+#include <map>
 //First we implement the sequential version of the algorithm described in the paper
 
 class TwoQueue{
     public:
     std::queue<Node*> Q_pp;
     std::queue<Node*> Q_p;
+    //Unreached:0 ; temporarily labeled:1; perm labeled:2;
+    std::map<int,int> status;
+    std::map<int,bool> in_queue;
     TwoQueue(){};
 
     void insert(Node* j){
-        if(!j->in_queue){
+        if(!this->in_queue[j->key]){
             //Unreached
-            if(j->status==0) this->Q_p.push(j);
+            this->in_queue[j->key] = 1;
+            if(this->status[j->key]==0){
+                this->status[j->key] = 1;
+                this->Q_p.push(j);
+            } 
             //tmp labeled
-            else if(j->status==1) this->Q_pp.push(j);
+            else if(this->status[j->key]==1) this->Q_pp.push(j);
         }
     }
 
     Node* remove(){
         if(!this->Q_pp.empty()){
             Node*j = this->Q_pp.front();
+            this->in_queue[j->key] = 0;
             this->Q_pp.pop();
             return j;
         }
         if(!this->Q_p.empty()){
             Node*j = this->Q_p.front();
+            this->in_queue[j->key] = 0;
             this->Q_p.pop();
             return j;
         }

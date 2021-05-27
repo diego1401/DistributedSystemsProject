@@ -12,17 +12,11 @@ class Edge; class Node; class Graph;
 class Node{
     public:
     int key;
-    int status;
-    bool in_queue;
     std::vector<Edge> Neighbors; //array of Edges so we can keep the weight
     Node(){
-        this->status = 0;
     };
     Node(int k){
         this->key = k;
-        //Unreached:0 ; temporarily labeled:1; perm labeled:2;
-        this->status = 0;
-        this->in_queue = false;
     }
     void print(){
         printf("Node(%d)\n",this->key);
@@ -31,14 +25,10 @@ class Node{
 
 class Edge{
     public:
-    Node* from;
-    Node* to;
-    int weight;
+    Node* from; Node* to;int weight;
     Edge(){};
     Edge(Node* f,Node* t,int w){
         this->from = f; this->to = t; this->weight =w;
-        // printf("Loading edge\n");
-        // printf("%d,%d,%d\n",this->from->key,this->to->key,this->weight);
     }
 };
 
