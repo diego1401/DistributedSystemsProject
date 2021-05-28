@@ -115,34 +115,46 @@ class Graph{
 
     void random_nodes(int N, int maxweights){
         for (int i=0; i < N; i++){
-            int id1 = rand()% N +1; int id2 = rand()%N + 1; int w = rand()%(maxweights + 1);
-            std::cout << "From " << id2 << " to: " << id1 << " with weight " << w << std::endl;
-            Node*to = new Node(id1); Node *from = new Node(id2);
-            this->add_node(*to); this->add_node(*from);
-            Edge e = Edge(from, to, w);
-            this->Edges.push_back(e);
+            int maxl = rand()%(int)N/2 + 1;
+            for (int j = 0; j < maxl; j++){
+                int id1=0; int id2=0;
+                while (id1 == id2){
+                    id1 = rand()% N ; id2 = rand()%N ; 
+                }
+                int w = rand()%(maxweights) + 1;
+                Node*to = new Node(id1); Node *from = new Node(id2);
+                this->add_node(*to); this->add_node(*from);
+                Edge e = Edge(from, to, w);
+                this->Edges.push_back(e);
+                std::cout << "From " << id2 << " to: " << id1 << " with weight " << w << std::endl;
+            }
+            // std::cout << "From " << id2 << " to: " << id1 << " with weight " << w << std::endl;
         }
         this->fill_neighbors();
     }
 
 };
-
-int* Adj_Matrix(Graph* G){
+int index(int x, int y, int n){
+    return x + n*y;
+}
+int *Adj_Matrix(Graph* G){
     int n = G->Nodes.size();
     int m = G->Edges.size();
-    int* Matrix = (int*)malloc(n*n);
+    // int* Matrix = (int*)malloc(n*n);
+    int *Matrix = new int[n*n];
     for(int i=0;i<n;i++){
         for(int j=0;j<n;j++){
-            if(i==j) Matrix[i + j*n] = 0;
+            if(i==j) Matrix[index(i,j,n)] = 0;
             else{
-                Matrix[i + j*n] = -1;
+                Matrix[index(i,j,n)] = -1;
             }
             
         }
     }
     for(int i=0;i<m;i++){
     //    printf("%d,%d,%d\n",G->Edges[i].from->key,G->Edges[i].to->key,G->Edges[i].weight);
-       Matrix[G->Edges[i].to->key + n*G->Edges[i].from->key] = G->Edges[i].weight; 
+    //    Matrix[G->Edges[i].from->key + n*G->Edges[i].to->key] = G->Edges[i].weight; 
+        Matrix[index(G->Edges[i].from->key,G->Edges[i].to->key,n)] = G->Edges[i].weight; 
     }
     return Matrix;
 }
