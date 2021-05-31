@@ -1,3 +1,4 @@
+#pragma once
 #include"Graph.hpp"
 #include <queue>
 #include <limits>
@@ -50,19 +51,27 @@ class TwoQueue{
 };
 
 
-int* Sequential_Dijkstra_Two_Queue(Graph* G, Node* s){
+unsigned int* Sequential_Dijkstra_Two_Queue(Graph* G,int key){
     int n = G->number_nodes;
-    int* d = (int*) malloc(n);
+    unsigned int* d = (unsigned int*) malloc(n);
     for(int i=0;i<n;i++){
         d[i] = std::numeric_limits<int>::max();
     }
-    s->print();
-    d[s->key] = 0;
+    Node* start;
+    start = G->ret_node_at(key);
+    start->print();
+    d[start->key] = 0;
     TwoQueue Q;
-    Q.insert(s);
+    Q.insert(start);
     while(!Q.is_empty()){
+        
         Node* i = Q.remove();
         std::vector<Edge> Succ = i->Neighbors;
+        // std::cout << "Printing Neigh" << std::endl;
+        // for(int k=0;k<Succ.size();k++){
+        //     Succ[k].print();
+        // }
+        // std::cout << "finished" << std::endl;
         for(int j=0;j<Succ.size();j++){
             Edge e = Succ[j];
             int k_succ = e.to->key;

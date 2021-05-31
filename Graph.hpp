@@ -1,3 +1,4 @@
+#pragma once
 #include <vector>
 #include <stdio.h>
 #include <iostream>
@@ -5,6 +6,7 @@
 #include <algorithm>
 #include <fstream>
 #include <stdlib.h>
+// #include "Dijkstra.h"
 
 //our classes
 class Edge; class Node; class Graph;
@@ -30,13 +32,16 @@ class Edge{
     Edge(Node* f,Node* t,int w){
         this->from = f; this->to = t; this->weight =w;
     }
+    void print(){
+        std::cout << this->from->key << "->" << this->to->key << "w = " << this->weight << std::endl;
+    }
 };
 
 
 
 class Graph{
     public:
-    std::vector<Node> Nodes;
+    std::vector<Node*> Nodes;
     std::vector<Edge> Edges;
     int number_nodes;
     Graph(){}
@@ -49,7 +54,14 @@ class Graph{
         printf("Done!\n");
     }
 
-    void add_node(Node n){
+    Node* ret_node_at(int key){
+        for(int i=0;i<this->Nodes.size();i++){
+            if(this->Nodes[i]->key == key) return this->Nodes[i];
+        }
+        return NULL;
+    }
+
+    bool add_node(Node* n){
 
         if(this->Nodes.empty()) {
            this->Nodes.push_back(n);
@@ -57,27 +69,32 @@ class Graph{
         //    printf("Node added!\n");
         }
         bool found = false;
-        Node k;
+        Node* k;
         for(int i=0;i<this->Nodes.size();i++){
             k = this->Nodes[i];
-            if(k.key == n.key){
+            if(k->key == n->key){
                 found = true;
-                break;
+                return true;
             }
         }
         if(!found){
             this->number_nodes ++;
             this->Nodes.push_back(n);
+            return false;
             // printf("Node added!\n");
         } 
+        return false;
     }
+
     void fill_neighbors(){
-        Edge e = Edges[0];
-        for(int i=1;i<Edges.size();i++){
-            e.from->Neighbors.push_back(e);
-            e = Edges[i];
+        for(int i=0;i<this->Edges.size();i++){
+            this->Edges[i].print();
+            this->Edges[i].from->Neighbors.push_back(this->Edges[i]);
+            this->Edges[i].from->print();
+            std::cout << this->Edges[i].from->Neighbors.size() <<std::endl;
         }
     }
+
     void read_file(std::string filename){
         int MAX_WEIGHT = 10000;
         std::ifstream file(filename);
@@ -93,8 +110,8 @@ class Graph{
             while (file >> id1 >> id2) {
                 to = new Node(id1);
                 from = new Node(id2);
-                this->add_node(*to);
-                this->add_node(*from);
+                this->add_node(to);
+                this->add_node(from);
                 w = rand() % MAX_WEIGHT + 1;
                 e = Edge(from,to,w);
                 this->Edges.push_back(e);
@@ -113,14 +130,27 @@ class Graph{
                 }
                 int w = rand()%(maxweights) + 1;
                 Node*to = new Node(id1); Node *from = new Node(id2);
-                this->add_node(*to); this->add_node(*from);
+                bool found1,found2;
+                found1 = this->add_node(to); found2 = this->add_node(from);
+                if(found1) to = this->ret_node_at(to->key);
+                if(found2) from = this->ret_node_at(from->key);
                 Edge e = Edge(from, to, w);
                 this->Edges.push_back(e);
-                std::cout << "From " << id2 << " to: " << id1 << " with weight " << w << std::endl;
+                // std::cout << "From " << id2 << " to: " << id1 << " with weight " << w << std::endl;
             }
             // std::cout << "From " << id2 << " to: " << id1 << " with weight " << w << std::endl;
         }
+        std::cout << "filling neighbors " << std::endl;
         this->fill_neighbors();
+        std::cout << "checking they are there "<< std::endl;
+        for(int i=0;i<this->Nodes.size();i++){
+            this->Nodes[i]->print();
+            std::cout << "Printing Neigh " ;
+            for(int k=0;k<this->Nodes[i]->Neighbors.size();k++){
+                this->Nodes[i]->Neighbors[k].print();
+            }
+            std::cout << std::endl;
+        }
     }
 
 };
