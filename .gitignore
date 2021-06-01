@@ -1,3 +1,4 @@
 
 *.json
 Dijkstra/exec
+.DS_Store
