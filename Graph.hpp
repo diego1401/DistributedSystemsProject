@@ -13,11 +13,14 @@ class Node{
     public:
     int key;
     std::vector<Edge> Neighbors; //array of Edges so we can keep the weight
+    
     Node(){
     };
+
     Node(int k){
         this->key = k;
     }
+
     void print(){
         printf("Node(%d)\n",this->key);
     }
@@ -26,7 +29,9 @@ class Node{
 class Edge{
     public:
     Node* from; Node* to;int weight;
+
     Edge(){};
+
     Edge(Node* f,Node* t,int w){
         this->from = f; this->to = t; this->weight =w;
     }
@@ -39,7 +44,8 @@ class Graph{
     std::vector<Node> Nodes;
     std::vector<Edge> Edges;
     int number_nodes;
-    Graph(){}
+    Graph(){};
+
     Graph(std::string filename){
         this->number_nodes = 0;
         printf("Creating Graph\n");
@@ -68,9 +74,9 @@ class Graph{
         if(!found){
             this->number_nodes ++;
             this->Nodes.push_back(n);
-            // printf("Node added!\n");
         } 
     }
+
     void fill_neighbors(){
         Edge e = Edges[0];
         for(int i=1;i<Edges.size();i++){
@@ -78,6 +84,7 @@ class Graph{
             e = Edges[i];
         }
     }
+
     void read_file(std::string filename){
         int MAX_WEIGHT = 10000;
         std::ifstream file(filename);
