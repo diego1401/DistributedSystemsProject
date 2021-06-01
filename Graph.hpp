@@ -15,11 +15,14 @@ class Node{
     public:
     int key;
     std::vector<Edge> Neighbors; //array of Edges so we can keep the weight
+    
     Node(){
     };
+
     Node(int k){
         this->key = k;
     }
+
     void print(){
         printf("Node(%d)\n",this->key);
     }
@@ -28,7 +31,9 @@ class Node{
 class Edge{
     public:
     Node* from; Node* to;int weight;
+
     Edge(){};
+
     Edge(Node* f,Node* t,int w){
         this->from = f; this->to = t; this->weight =w;
     }
@@ -44,7 +49,8 @@ class Graph{
     std::vector<Node*> Nodes;
     std::vector<Edge> Edges;
     int number_nodes;
-    Graph(){}
+    Graph(){};
+
     Graph(std::string filename){
         this->number_nodes = 0;
         printf("Creating Graph\n");
