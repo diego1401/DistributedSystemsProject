@@ -53,4 +53,8 @@ class Heap{
         }
         std::make_heap(this->queue.begin(), this->queue.end(), ElementComapre());
     }
+
+    bool isEmpty(){
+        return this->queue.size();
+    }
 };
