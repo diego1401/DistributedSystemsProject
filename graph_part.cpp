@@ -3,6 +3,7 @@
 #include <queue>
 #include <limits>
 #include <map>
+#include <assert.h>    
 //First we implement the sequential version of the algorithm described in the paper
 
 class TwoQueue{
@@ -50,16 +51,21 @@ class TwoQueue{
     }
 };
 
+void print_dist(Graph* G,unsigned int* d){
+            for (int i=0; i < G->number_nodes; i++){
+                std::cout << d[i] << " ";
+            }
+            std::cout << std::endl;
+}
 
 unsigned int* Sequential_Dijkstra_Two_Queue(Graph* G,int key){
+    Node* start;
+    start = G->ret_node_at(key);
     int n = G->number_nodes;
-    unsigned int* d = (unsigned int*) malloc(n);
+    unsigned int* d = (unsigned int*) malloc(n*sizeof(unsigned int));
     for(int i=0;i<n;i++){
         d[i] = std::numeric_limits<int>::max();
     }
-    Node* start;
-    start = G->ret_node_at(key);
-    start->print();
     d[start->key] = 0;
     TwoQueue Q;
     Q.insert(start);
@@ -67,16 +73,13 @@ unsigned int* Sequential_Dijkstra_Two_Queue(Graph* G,int key){
         
         Node* i = Q.remove();
         std::vector<Edge> Succ = i->Neighbors;
-        // std::cout << "Printing Neigh" << std::endl;
-        // for(int k=0;k<Succ.size();k++){
-        //     Succ[k].print();
-        // }
-        // std::cout << "finished" << std::endl;
+        double curr_dis = d[i->key];
         for(int j=0;j<Succ.size();j++){
-            Edge e = Succ[j];
+            Edge e = Succ[j]; 
             int k_succ = e.to->key;
-            if(d[k_succ]> d[i->key]+ e.weight){
-                d[k_succ] = d[i->key] + e.weight;
+            if(d[k_succ]> curr_dis + e.weight){
+                assert(e.weight != -1);
+                d[k_succ] = curr_dis + e.weight;
                 Q.insert(e.to);
             }
         }

@@ -1,6 +1,6 @@
 // #include "Graph.hpp"
 #include "graph_part.cpp"
-#include "Dijkstra.h"
+#include "Dijkstra/Dijkstra.h"
 // int main(){
 //     // Edge e1(0,1,2);
 //     // Edge e2(1,2,3);
@@ -27,25 +27,16 @@
 int main(){
     Graph *gra =  new Graph;
     gra->random_nodes(6,4);
-
-    // for(int i=0;i<gra->Nodes.size();i++){
-    //     gra->Nodes[i]->print();
-    //     std::cout << "Printing Neigh " ;
-    //     for(int k=0;k<gra->Nodes[i]->Neighbors.size();k++){
-    //         gra->Nodes[i]->Neighbors[k].print();
-    //     }
-    //     std::cout << std::endl;
-    // }
+    unsigned int* d;
+    d = Sequential_Dijkstra_Two_Queue(gra, 0);
 
     int* mat = Adj_Matrix(gra);
-    // print_matrix(mat, gra->Nodes.size());
-    unsigned int* d;
     Dijkstra dijk = Dijkstra(gra, 0);
-    d = Sequential_Dijkstra_Two_Queue(gra, 0);
     dijk.compute();
     std::cout << "Original" << " ";
     dijk.print_dist();
     std::cout << std::endl;
+    std::cout << "TwoQueue" << " ";
     for(int i=0;i<6;i++){
         std::cout << d[i] << " ";
     }
