@@ -26,6 +26,7 @@ class Node{
     void print(){
         printf("Node(%d)\n",this->key);
     }
+    
 };
 
 class Edge{
@@ -41,8 +42,6 @@ class Edge{
         std::cout << this->from->key << "->" << this->to->key << "w = " << this->weight << std::endl;
     }
 };
-
-
 
 class Graph{
     public:
@@ -94,10 +93,8 @@ class Graph{
 
     void fill_neighbors(){
         for(int i=0;i<this->Edges.size();i++){
-            this->Edges[i].print();
+            // this->Edges[i].print();
             this->Edges[i].from->Neighbors.push_back(this->Edges[i]);
-            this->Edges[i].from->print();
-            std::cout << this->Edges[i].from->Neighbors.size() <<std::endl;
         }
     }
 
@@ -127,42 +124,65 @@ class Graph{
     }
 
     void random_nodes(int N, int maxweights){
-        for (int i=0; i < N; i++){
-            int maxl = rand()%(int)N/2 + 1;
-            for (int j = 0; j < maxl; j++){
-                int id1=0; int id2=0;
-                while (id1 == id2){
-                    id1 = rand()% N ; id2 = rand()%N ; 
-                }
-                int w = rand()%(maxweights) + 1;
-                Node*to = new Node(id1); Node *from = new Node(id2);
-                bool found1,found2;
-                found1 = this->add_node(to); found2 = this->add_node(from);
-                if(found1) to = this->ret_node_at(to->key);
-                if(found2) from = this->ret_node_at(from->key);
-                Edge e = Edge(from, to, w);
+        //Add N Nodes
+        for(int i=0;i<N;i++){
+            Node*node = new Node(i);
+            this->add_node(node);
+        }
+        //Give Random Weights to their edges
+        int w;
+        for(int i=0;i<N;i++){
+            for(int j=0;j<N;j++){
+                w = rand()%N + 1; 
+                if(i==j) continue;
+                Node* from = this->ret_node_at(i);
+                Node* to = this->ret_node_at(j);
+                Edge e(from,to,w);
                 this->Edges.push_back(e);
-                // std::cout << "From " << id2 << " to: " << id1 << " with weight " << w << std::endl;
             }
-            // std::cout << "From " << id2 << " to: " << id1 << " with weight " << w << std::endl;
         }
-        std::cout << "filling neighbors " << std::endl;
+
         this->fill_neighbors();
-        std::cout << "checking they are there "<< std::endl;
-        for(int i=0;i<this->Nodes.size();i++){
-            this->Nodes[i]->print();
-            std::cout << "Printing Neigh " ;
-            for(int k=0;k<this->Nodes[i]->Neighbors.size();k++){
-                this->Nodes[i]->Neighbors[k].print();
-            }
-            std::cout << std::endl;
-        }
+
     }
 
+        // for (int i=0; i < N; i++){
+        //     int maxl = rand()%(int)N/2 + 1;
+        //     for (int j = 0; j < maxl; j++){
+        //         int id1=0; int id2=0;
+        //         while (id1 == id2){
+        //             id1 = rand()% N ; id2 = rand()%N ; 
+        //         }
+        //         int w = rand()%(maxweights) + 1;
+        //         Node*to = new Node(id1); Node *from = new Node(id2);
+        //         bool found1,found2;
+        //         found1 = this->add_node(to); found2 = this->add_node(from);
+        //         if(found1) to = this->ret_node_at(to->key);
+        //         if(found2) from = this->ret_node_at(from->key);
+        //         Edge e = Edge(from, to, w);
+        //         this->Edges.push_back(e);
+        //         // std::cout << "From " << id2 << " to: " << id1 << " with weight " << w << std::endl;
+        //     }
+        //     // std::cout << "From " << id2 << " to: " << id1 << " with weight " << w << std::endl;
+        // }
+        // // std::cout << "filling neighbors " << std::endl;
+        // this->fill_neighbors();
+        // std::cout << "checking they are there "<< std::endl;
+        // for(int i=0;i<this->Nodes.size();i++){
+        //     this->Nodes[i]->print();
+        //     std::cout << "Printing Neigh " ;
+        //     for(int k=0;k<this->Nodes[i]->Neighbors.size();k++){
+        //         this->Nodes[i]->Neighbors[k].print();
+        //     }
+        //     std::cout << std::endl;
+        // }
+
 };
+
 int index(int x, int y, int n){
     return x + n*y;
 }
+
 int *Adj_Matrix(Graph* G){
     int n = G->Nodes.size();
     int m = G->Edges.size();

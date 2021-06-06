@@ -45,7 +45,7 @@ class Dijkstra{
             this->distance[this->source] = 0;
             // this->check[this->source] = true;
             for (int i=0; i < N -1; i++){
-                print_dist();
+                // print_dist();
                 int minindex = minDistance();
                 this->check[minindex] = true;
                 for (int j=0; j <N; j++){

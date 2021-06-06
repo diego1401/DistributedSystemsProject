@@ -1,25 +1,24 @@
 #include "Graph.hpp"
 
+// Edge::Edge(Node* f,Node* t,int w){
+//         this->from = f; this->to = t; this->weight =w;
+//     }
 
-int main(){
-    // Edge e1(0,1,2);
-    // Edge e2(1,2,3);
-    // Edge e3(2,3,4);
-    // Edge e4(3,0,1);
-    // Graph *G = new Graph();
-    // G->Nodes.push_back(0);
-    // G->Nodes.push_back(1);
-    // G->Nodes.push_back(2);
-    // G->Nodes.push_back(3);
+// void Edge::print(){
+//         std::cout << this->from->key << "->" << this->to->key << "w = " << this->weight << std::endl;
+//     }
 
-    // // G->Edges.push_back(e1);
-    // // G->Edges.push_back(e2);
-    // // G->Edges.push_back(e3);
-    // // G->Edges.push_back(e4);
-    // std::vector<Edge> E = {e1,e2,e3,e4};
-    // G->Edges = E;
-    
-    // int * M = Adj_Matrix(G);
-    // print_matrix(M,G->Nodes.size());
-    return 0;
-}
+// Node::Node(int k){
+//         this->key = k;
+//     }
+
+// void Node::print(){
+//         printf("Node(%d)\n",this->key);
+//     }
+
+// void Node::print_neigh(){
+//         std::cout << "Printing Neighbors" << std::endl;
+//         for(int i=0;i<this->Neighbors.size();i++){
+//             (this->Neighbors[i]).print();
+//         }
+//     }
