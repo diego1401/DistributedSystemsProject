@@ -1,9 +1,6 @@
 #pragma once
 #include"Graph.hpp"
-#include <queue>
-#include <limits>
-#include <map>
-#include <assert.h>    
+
 //First we implement the sequential version of the algorithm described in the paper
 
 class TwoQueue{
@@ -51,13 +48,6 @@ class TwoQueue{
     }
 };
 
-void print_dist(Graph* G,unsigned int* d){
-            for (int i=0; i < G->number_nodes; i++){
-                std::cout << d[i] << " ";
-            }
-            std::cout << std::endl;
-}
-
 unsigned int* Sequential_Dijkstra_Two_Queue(Graph* G,int key){
     Node* start;
     start = G->ret_node_at(key);
@@ -86,3 +76,66 @@ unsigned int* Sequential_Dijkstra_Two_Queue(Graph* G,int key){
     }
     return d;
 }
+
+//Todo: - We have Boundary Nodes. How to detect adjecent subgraphs(Efficiently...)? Keep a vector?
+//      - How to implement SendTag?
+
+// void aux_SSSP(Graph* G, SubGraph* Gk, unsigned int* d,idx_t* part,
+//               int sendTag,std::vector<std::vector<int>>& MessageArray,std::mutex lock,int key=0){
+//     TwoQueue Q;
+//     Node* start;
+//     start = Gk->ret_node_at(key);
+//     Q.insert(start);
+//     while(true){
+//         while(!Q.is_empty()){
+//         Node* i = Q.remove();
+//         // for each successor node j of i, in current subgraph
+//         std::vector<Edge> Succ = i->Neighbors; double curr_dis = d[i->key];
+//         for(int j=0;j<Succ.size();j++){
+//             int w = Succ[j].weight; int k = Succ[j].to->key; 
+//             if(d[k]> curr_dis + w){
+//                 d[k] = curr_dis + w; Q.insert(Succ[j].to);
+//             }
+//         }
+//         //for each successor node r(in a subgraph k) of i
+//         //find i in the original graph
+//         Node* i_prime = G->ret_node_at(i->key);
+//         std::vector<Edge> Succ = i->Neighbors; double curr_dis = d[i->key];
+//         for(int j=0;j<Succ.size();j++){
+//             int w = Succ[j].weight; int k = Succ[j].to->key; 
+//             if(d[k]> curr_dis + w){
+//                 std::lock_guard<std::mutex> lk(lock);
+//                 sendTag += 1;
+//                 MessageArray[Gk->key].push_back(k);
+//             }
+//         }
+        
+
+//         }
+    
+//     }
+
+// }
+
+// unsigned int* Parallel_SSSP(Graph* G,int key,idx_t *part){
+//     int num_threads = 5;
+//     std::vector<std::thread> threads(num_threads-1);
+
+//     //Do graph partionning 
+//     idx_t* part;
+//     //Init dist
+//     int n = G->number_nodes; unsigned int* d = (unsigned int*) malloc(n*sizeof(unsigned int));
+//     for(int i=0;i<n;i++){
+//         d[i] = std::numeric_limits<int>::max();
+//     }
+//     Node* start; start = G->ret_node_at(key); d[start->key] = 0;
+
+//     std::atomic<int> sendTag{0};
+//     std::vector<std::vector<int>> MessageArray(num_threads);
+//     std::mutex lock;
+
+//     for(unsigned long i=0;i<(num_threads-1);++i)
+//     {
+//         threads[i]=std::thread(Parallel_SSSP,G,NULL,d,part,sendTag,MessageArray,lock);
+//     }
+// }

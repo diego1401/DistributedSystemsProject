@@ -5,11 +5,18 @@
 #include <cstdlib>
 #include <algorithm>
 #include <fstream>
-#include <stdlib.h>
-// #include "Dijkstra.h"
+#include <queue>
+#include <limits>
+#include <map>
+#include <thread>
+#include <assert.h>   
+#include <cstddef> /* NULL */
+#include <metis.h> 
+#include <mutex>
+#include <atomic>   
 
 //our classes
-class Edge; class Node; class Graph;
+class Edge; class Node; class Graph; class SubGraph;
 
 class Node{
     public:
@@ -48,6 +55,10 @@ class Graph{
     std::vector<Node*> Nodes;
     std::vector<Edge> Edges;
     int number_nodes;
+    //For the Graph Partioning Library
+    idx_t *xadj;
+    idx_t *adjncy;
+    idx_t *adjwgt; //WEIGHTS MUST BE GREATER THAN 0
     Graph(){};
 
     Graph(std::string filename){
@@ -59,11 +70,21 @@ class Graph{
         printf("Done!\n");
     }
 
+    ~Graph(){
+        free(xadj);
+        free(adjncy);
+        free(adjwgt);
+    }
+
     Node* ret_node_at(int key){
         for(int i=0;i<this->Nodes.size();i++){
             if(this->Nodes[i]->key == key) return this->Nodes[i];
         }
         return NULL;
+    }
+
+    bool contains(int key){
+        return ret_node_at(key)!= NULL;
     }
 
     bool add_node(Node* n){
@@ -146,36 +167,51 @@ class Graph{
 
     }
 
-        // for (int i=0; i < N; i++){
-        //     int maxl = rand()%(int)N/2 + 1;
-        //     for (int j = 0; j < maxl; j++){
-        //         int id1=0; int id2=0;
-        //         while (id1 == id2){
-        //             id1 = rand()% N ; id2 = rand()%N ; 
-        //         }
-        //         int w = rand()%(maxweights) + 1;
-        //         Node*to = new Node(id1); Node *from = new Node(id2);
-        //         bool found1,found2;
-        //         found1 = this->add_node(to); found2 = this->add_node(from);
-        //         if(found1) to = this->ret_node_at(to->key);
-        //         if(found2) from = this->ret_node_at(from->key);
-        //         Edge e = Edge(from, to, w);
-        //         this->Edges.push_back(e);
-        //         // std::cout << "From " << id2 << " to: " << id1 << " with weight " << w << std::endl;
-        //     }
-        //     // std::cout << "From " << id2 << " to: " << id1 << " with weight " << w << std::endl;
-        // }
-        // // std::cout << "filling neighbors " << std::endl;
-        // this->fill_neighbors();
-        // std::cout << "checking they are there "<< std::endl;
-        // for(int i=0;i<this->Nodes.size();i++){
-        //     this->Nodes[i]->print();
-        //     std::cout << "Printing Neigh " ;
-        //     for(int k=0;k<this->Nodes[i]->Neighbors.size();k++){
-        //         this->Nodes[i]->Neighbors[k].print();
-        //     }
-        //     std::cout << std::endl;
-        // }
+    void fill_METIS_values(){
+        xadj = (idx_t*) malloc((this->number_nodes+1)*sizeof(idx_t));
+        //Only store Edges.size() because we are using weights we store
+        // (u,v) and (v,u) Independently 
+        adjncy = (idx_t*) malloc(Edges.size() * sizeof(idx_t));
+        adjwgt = (idx_t*) malloc(Edges.size() * sizeof(idx_t));
+        //vwgt = to be done...
+
+        //We iterate over the nodes, and over its neighbors
+        //because we need to store indep (u,v) and (v,u)
+        xadj[0] = 0;
+        for(int i=0;i<this->number_nodes;i++){
+            Node* curr_node = ret_node_at(i);
+            std::vector<Edge> Neighbors = curr_node->Neighbors;
+            for(int j=0;j<Neighbors.size();j++){
+                adjncy[xadj[i]+j] = Neighbors[j].to->key;
+                adjwgt[xadj[i]+j] = Neighbors[j].weight;
+            }
+            xadj[i+1] = xadj[i] + Neighbors.size();
+        }
+    }
+
+};
+
+class SubGraph: public  Graph{
+    public:
+    int key;
+    std::vector<Node*> BoundaryNodes;
+    
+    void UpdateBoundaryNodes(){
+        for(int i=0;i<this->number_nodes;i++){
+            Node* curr_node = this->Nodes[i];
+            std::vector<Edge> Neighbors = curr_node->Neighbors;
+            for(int j=0;j<Neighbors.size();j++){
+                if(!this->contains(Neighbors[j].to->key)){
+                    this->BoundaryNodes.push_back(curr_node);
+                    //We now know it is a Boundary Node
+                    break;
+                }
+            }
+        }
+    }
+
+
+    
 
 };
 
@@ -214,6 +250,5 @@ void print_matrix(int* Matrix,int n){
         std::cout << std::endl;
     }
 }
-
 
 
