@@ -1,7 +1,11 @@
 #pragma once
 #include"Graph.hpp"
 
-//First we implement the sequential version of the algorithm described in the paper
+/*
+    First we implement the sequential 
+    version of the algorithm described 
+    in the paper
+*/
 
 class TwoQueue{
     public:
@@ -77,7 +81,7 @@ unsigned int* Sequential_Dijkstra_Two_Queue(Graph* G,int key){
     return d;
 }
 
-//Todo: - We have Boundary Nodes. How to detect adjecent subgraphs(Efficiently...)? Keep a vector?
+//Todo: - Confirm code is run. If it is, Boundary Nodes sufficient?
 //      - How to implement SendTag?
 
 // void aux_SSSP(Graph* G, SubGraph* Gk, unsigned int* d,idx_t* part,
