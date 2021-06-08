@@ -1,8 +1,10 @@
+#pragma once
 #include <vector>
 #include <climits>
 #include <algorithm>
 #include <map>
-#include "./btree/btree_set.h"
+// #include "./btree/btree_set.h"
+
 struct Element{
     int index;
     double value;
@@ -56,5 +58,10 @@ class Heap{
 
     bool isEmpty(){
         return this->queue.size();
+    }
+    void printqueue(){
+        for (int i=0; i< this->queue.size(); i++){
+            std::cout << "Index = " << queue[i].index << " and value = " << queue[i].value << std::endl;
+        }
     }
 };
