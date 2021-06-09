@@ -14,7 +14,7 @@ class Dijkstra{
         int N;
         bool* check;
         // Graph* graph;
-        int* graph;
+        unsigned int* graph;
         Dijkstra() {}
         Dijkstra(Graph *g, int src){
             this->graph = Adj_Matrix(g);

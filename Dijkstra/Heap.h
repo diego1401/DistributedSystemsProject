@@ -1,5 +1,4 @@
 #pragma once
-#include <vector>
 #include <climits>
 #include <algorithm>
 #include <map>
@@ -39,6 +38,7 @@ class Heap{
     }
 
     Element returnMin(){
+        // std::cout << this->queue.front().index << " value = " << this->queue.front().value << std::endl;
         return this->queue.front();
     }
 
