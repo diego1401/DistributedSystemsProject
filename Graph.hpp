@@ -14,6 +14,8 @@
 #include <metis.h> 
 #include <mutex>
 #include <atomic>   
+#include <condition_variable>
+#include <chrono>
 
 //our classes
 class Edge; class Node; class Graph; class SubGraph;
@@ -67,7 +69,9 @@ class Graph{
         this->read_file(filename);
         printf("Done!\nFilling neighbors\n");
         this->fill_neighbors();
-        printf("Done!\n");
+        printf("Done!\nFilling METIS values");
+        this->fill_METIS_values();
+        printf("Done\n");
     }
 
     ~Graph(){
@@ -124,8 +128,9 @@ class Graph{
         std::ifstream file(filename);
         if (file.is_open()) {
             //get rid of useless lines
+            int lines_to_skip = 0;
             std::string line;
-            for(int j=0;j<4;j++){
+            for(int j=0;j<lines_to_skip;j++){
                 std::getline(file,line);
             }
             Node* to,*from;
@@ -189,18 +194,54 @@ class Graph{
         }
     }
 
+    void print_METIS(){
+        std::cout << "xajd = ";
+        for(int i=0;i<this->number_nodes;i++){
+            std::cout << this->xadj[i] << ", ";
+        }
+        std::cout << this->xadj[this->number_nodes] << std::endl;
+
+        std::cout << "adjncy = ";
+        for(int i=0;i<this->Edges.size();i++){
+            
+            std::cout << this->adjncy[i];
+            if(i!= this->Edges.size()-1) std::cout << ", ";
+        }
+        std::cout << std::endl;
+        std::cout << "adjwgt = ";
+        for(int i=0;i<this->Edges.size();i++){
+            
+            std::cout << this->adjwgt[i];
+            if(i!= this->Edges.size()-1) std::cout << ", ";
+        }
+        std::cout << std::endl;
+    }
+
+    void print_nodes(){
+        std::cout << "Nodes :" << std::endl;
+        for(int i=0;i<this->Nodes.size();i++){
+            this->Nodes[i]->print();
+            std::cout <<  ",";
+        }
+        std::cout << std::endl;
+    }
 };
 
 class SubGraph: public  Graph{
     public:
     int key;
-    std::vector<Node*> BoundaryNodes;
+    Graph* Main_Graph;
+
+    std::vector<Node*> BoundaryNodes; //Boundary Nodes are node from the main graph
+    //that link this Subgraph with other subgraphs
     
     void UpdateBoundaryNodes(){
         for(int i=0;i<this->number_nodes;i++){
-            Node* curr_node = this->Nodes[i];
+            Node* curr_node = this->Main_Graph->Nodes[i];
             std::vector<Edge> Neighbors = curr_node->Neighbors;
             for(int j=0;j<Neighbors.size();j++){
+                //As contains searches for a key, it does not matter that the nodes in 
+                // this->Nodes and Main_Graph->Nodes are not the same
                 if(!this->contains(Neighbors[j].to->key)){
                     this->BoundaryNodes.push_back(curr_node);
                     //We now know it is a Boundary Node
@@ -210,8 +251,42 @@ class SubGraph: public  Graph{
         }
     }
 
+    SubGraph(Graph* _Main_G,idx_t* part,int _key){
+        this->number_nodes = 0;
+        this->key = _key;
+        this->Main_Graph = _Main_G;
+        // std::cout << "SubGraph: " << this->key << std::endl;
+        //we add only the Edges that involve nodes of the subgraph
+        for(int i=0;i<_Main_G->Edges.size();i++){
+            //The associated k of the nodes has to be the same as for the graph
+            int key_from = _Main_G->Edges[i].from->key;
+            int key_to = _Main_G->Edges[i].to->key;
+            // std::cout << key_from << "->" << key_to << "(" <<part[key_from] << "," << part[key_to] << ")";
+            if(part[key_from] == this-> key &&
+               part[key_to]   == this-> key){
+                //    std::cout << "added!" ;
+                   Node*to = new Node(key_to);
+                   Node*from = new Node(key_from);
+                   if(this->add_node(to)){
+                       to = this->ret_node_at(key_to);
+                   };
 
-    
+                   if(this->add_node(from)){
+                       from = this->ret_node_at(key_from);
+                   };
+                   Edge e(from,to,_Main_G->Edges[i].weight);
+                   this->Edges.push_back(e);
+
+               }
+            // std::cout << std::endl;
+        }
+        //Fill neighbors
+        this->fill_neighbors();
+        //Update the Boundary Nodes
+        this->UpdateBoundaryNodes();
+
+    }
+
 
 };
 

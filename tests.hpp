@@ -64,3 +64,67 @@ void test_fill_METIS_values(){
     }
     std::cout << std::endl;
 }
+
+void test_veryeasy_graph_part(){
+    // 0 - 1 - 2
+    // |   |   |
+    // 3 - 4 - 5
+    //init 
+    Node* n0 = new Node(0); Node* n1 = new Node(1); Node* n2 = new Node(2);
+    Node* n3 = new Node(3); Node* n4 = new Node(4); Node* n5 = new Node(5);
+
+    Edge e0_1(n0,n1,1), e0_3(n0,n3,1),
+        e1_0(n1,n0,1), e1_4(n1,n4,1), e1_2(n1,n2,1),
+        e2_1(n2,n1,1), e2_5(n2,n5,1),
+        e3_0(n3,n0,1), e3_4(n3,n4,1),
+        e4_3(n4,n3,1), e4_1(n4,n1,1), e4_5(n4,n5,1),
+        e5_2(n5,n2,1), e5_4(n5,n4,1);
+
+    Graph* G = new Graph();
+    G->add_node(n0); G->add_node(n1);G->add_node(n2);
+    G->add_node(n3); G->add_node(n4);G->add_node(n5);
+
+    G->Edges = {e0_1, e0_3, e1_0, e1_4, e1_2,
+                e2_1, e2_5, e3_0, e3_4, e4_3, e4_1, e4_5,
+                e5_2, e5_4};
+    G->fill_neighbors();
+    G->fill_METIS_values();
+    // unsigned int* d = Parallel_SSSP(G);
+    // std::cout << "Graph Partionning result: " << " ";
+    // for(int i=0;i<G->number_nodes;i++){
+    //     std::cout << d[i] << " ";
+    // }
+    // std::cout << std::endl;
+
+}   
+
+void test_seq_vs_graph_part(){
+    Graph *gra =  new Graph;
+    gra->random_nodes(2000,20);
+    gra->fill_METIS_values();
+    Dijkstra dijk = Dijkstra(gra, 0);
+    using namespace std::chrono;
+    unsigned int* d;
+    duration<double> time_span2;
+    d = Parallel_SSSP(gra,time_span2,0);
+    std::cout << "Finished Graph Partionning" << std::endl;
+    //Dijk Seq
+    high_resolution_clock::time_point t1 = high_resolution_clock::now();
+    dijk.compute();
+    high_resolution_clock::time_point t2 = high_resolution_clock::now();
+    duration<double> time_span1 = duration_cast<duration<double> >(t2 - t1);
+    std::cout << "Finished Dijkstra" << std::endl;
+    // std::cout << "Original" << " ";
+    // dijk.print_dist();
+    // std::cout << std::endl;
+    //graph_part
+    
+    std::cout << "Comparing" << " ";
+    for(int i=0;i<gra->number_nodes;i++){
+        if(d[i]!=dijk.distance[i]){
+            std::cout << "Fail!" ;
+        }
+    }
+    std::cout <<"... Success!" << std::endl;
+    std::cout << "Ratio = " << time_span2.count()/time_span1.count() << std::endl;
+}

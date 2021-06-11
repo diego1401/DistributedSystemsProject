@@ -20,7 +20,7 @@ class Dijkstra{
             this->graph = Adj_Matrix(g);
             this->source = src;
             this->N = g->Nodes.size();
-            print_matrix(this->graph, N);
+            // print_matrix(this->graph, N);
             this->distance = new unsigned int[this->N];
             this->check = new bool[this->N];
         }
