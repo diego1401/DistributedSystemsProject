@@ -48,12 +48,18 @@ class Heap{
     }
 
     void DecreaseKey(int key, int newvalue){
+        int k;
         for (int i = 0; i < this->queue.size(); i++){
             if (this->queue[i].index == key){
                 this->queue[i].value = newvalue;
+                k = i;
+                break;
+                // this->queue[i].value = INT_MAX;
             }
         }
-        std::make_heap(this->queue.begin(), this->queue.end(), ElementComapre());
+        // this->push(Element(key, newvalue));
+        std::push_heap(this->queue.begin(), this->queue.begin() + k+ 1, ElementComapre());
+        // std::make_heap(this->queue.begin(), this->queue.end(), ElementComapre());
     }
 
     bool isEmpty(){
