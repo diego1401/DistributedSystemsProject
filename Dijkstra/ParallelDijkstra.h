@@ -86,14 +86,6 @@ class DijkQueue{
             this->printqueue();
             #endif
         }
-        // void push(Element item){
-        //     this->queue.push(item);
-        //     this->queue_star.push(item);
-        // }
-        // void pop(){
-        //     this->queue.pop();
-        //     this->queue_star.pop();
-        // }
         void remove_tent(int bound){
             for (int i = 0; i < this->queue.queue.size(); i++){
                 if (this->queue.returnMin().value <= bound){
@@ -155,6 +147,7 @@ class DijkQueue{
 
 class ParDijkstra{
     public:
+        std::mutex lock;
         std::map<int,unsigned int> delta;
         size_t num_threads;
         std::vector<std::thread>  threads;
@@ -271,8 +264,11 @@ class ParDijkstra{
 
 
 void ParDijkstra::parcompute(int i, int L){
+    
     this->Queues[i].remove_tent(L);
+    this->lock.lock();
     this->Queues[i].find_distances(this->glbtent);
+    this->lock.unlock();
     for (int j=0; j < this->Queues[i].Req.size(); j++) {
         int w; unsigned int x;
         std::tie(w,x)= this->Queues[i].Req[j];
