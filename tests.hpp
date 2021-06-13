@@ -2,8 +2,10 @@
 #include "Dijkstra/Dijkstra.h"
 
 void test_sequential(){
-    Graph *gra =  new Graph;
-    gra->random_nodes(10000,4);
+    int N = 10000;
+    Graph *gra =  new Graph(N);
+    gra->random_nodes(N,1000);
+    // print_matrix(Adj_Matrix(gra),N);
     unsigned int* d;
     using namespace std::chrono;
     high_resolution_clock::time_point t1 = high_resolution_clock::now();
@@ -16,13 +18,16 @@ void test_sequential(){
     dijk.compute();
     t2 = high_resolution_clock::now();
     duration<double> time_span2 = duration_cast<duration<double> >(t2 - t1);
-     std::cout << "Comparing" << " ";
+    std::cout << "Comparing" << " ";
+    double counter = 0;
     for(int i=0;i<gra->number_nodes;i++){
-        if(d[i]!=dijk.distance[i]){
-            std::cout << "Fail!" ;
+        if(d[i]==dijk.distance[i]){
+            counter +=1;
+            // std::cout << "Fail!" ;
+            // std::cout << d[i] << " and " << dijk.distance[i] << std::endl;
         }
     }
-    std::cout <<"... Success!" << std::endl;
+    std::cout <<"... Success rate: "<<(double) counter/gra->number_nodes*100 << std::endl;
     std::cout << "Time TwoQ: " << time_span1.count() << " , Time Dijkstra: " << time_span2.count() << std::endl;
     // std::cout << "Original" << " ";
     // dijk.print_dist();
@@ -32,14 +37,16 @@ void test_sequential(){
     //     std::cout << d[i] << " ";
     // }
     // std::cout << std::endl;
+    // dijk.print_dist();
 }
 
 void test_fill_METIS_values(){
     // 0 - 1 - 2
     // |   |   |
     // 3 - 4 - 5
-    Node* n0 = new Node(0); Node* n1 = new Node(1); Node* n2 = new Node(2);
-    Node* n3 = new Node(3); Node* n4 = new Node(4); Node* n5 = new Node(5);
+    Graph* G = new Graph(6);
+    Node* n0 = G->ret_node_at(0); Node* n1 = G->ret_node_at(1); Node* n2 = G->ret_node_at(2);
+    Node* n3 = G->ret_node_at(3); Node* n4 = G->ret_node_at(4); Node* n5 = G->ret_node_at(5);
 
     Edge e0_1(n0,n1,1), e0_3(n0,n3,1),
          e1_0(n1,n0,1), e1_4(n1,n4,1), e1_2(n1,n2,1),
@@ -48,9 +55,9 @@ void test_fill_METIS_values(){
          e4_3(n4,n3,1), e4_1(n4,n1,1), e4_5(n4,n5,1),
          e5_2(n5,n2,1), e5_4(n5,n4,1);
 
-    Graph* G = new Graph();
-    G->add_node(n0); G->add_node(n1);G->add_node(n2);
-    G->add_node(n3); G->add_node(n4);G->add_node(n5);
+    
+    // G->add_node(n0); G->add_node(n1);G->add_node(n2);
+    // G->add_node(n3); G->add_node(n4);G->add_node(n5);
 
     G->Edges = {e0_1, e0_3, e1_0, e1_4, e1_2,
                 e2_1, e2_5, e3_0, e3_4, e4_3, e4_1, e4_5,
@@ -85,8 +92,9 @@ void test_veryeasy_graph_part(){
     // |   |   |
     // 3 - 4 - 5
     //init 
-    Node* n0 = new Node(0); Node* n1 = new Node(1); Node* n2 = new Node(2);
-    Node* n3 = new Node(3); Node* n4 = new Node(4); Node* n5 = new Node(5);
+    Graph* G = new Graph(6);
+    Node* n0 = G->ret_node_at(0); Node* n1 = G->ret_node_at(1); Node* n2 = G->ret_node_at(2);
+    Node* n3 = G->ret_node_at(3); Node* n4 = G->ret_node_at(4); Node* n5 = G->ret_node_at(5);
 
     Edge e0_1(n0,n1,1), e0_3(n0,n3,1),
         e1_0(n1,n0,1), e1_4(n1,n4,1), e1_2(n1,n2,1),
@@ -95,10 +103,6 @@ void test_veryeasy_graph_part(){
         e4_3(n4,n3,1), e4_1(n4,n1,1), e4_5(n4,n5,1),
         e5_2(n5,n2,1), e5_4(n5,n4,1);
 
-    Graph* G = new Graph();
-    G->add_node(n0); G->add_node(n1);G->add_node(n2);
-    G->add_node(n3); G->add_node(n4);G->add_node(n5);
-
     G->Edges = {e0_1, e0_3, e1_0, e1_4, e1_2,
                 e2_1, e2_5, e3_0, e3_4, e4_3, e4_1, e4_5,
                 e5_2, e5_4};
@@ -106,7 +110,7 @@ void test_veryeasy_graph_part(){
     G->fill_METIS_values();
     using namespace std::chrono;
     duration<double> time_span2;
-    unsigned int* d = Parallel_SSSP(G,time_span2);
+    unsigned int* d = Parallel_SSSP(G,time_span2,2);
     std::cout << "Graph Partionning result: " << " ";
     for(int i=0;i<G->number_nodes;i++){
         std::cout << d[i] << " ";
@@ -116,14 +120,16 @@ void test_veryeasy_graph_part(){
 }   
 
 void test_seq_vs_graph_part(){
-    Graph *gra =  new Graph;
-    gra->random_nodes(1000,20);
+    for(int num_threads=2;num_threads<3;num_threads++){
+    int N = 1000;
+    Graph *gra =  new Graph(N);
+    gra->random_nodes(N,20);
     gra->fill_METIS_values();
     Dijkstra dijk = Dijkstra(gra, 0);
     using namespace std::chrono;
     unsigned int* d,*d1;
     duration<double> time_span2;
-    d = Parallel_SSSP(gra,time_span2,0);
+    d = Parallel_SSSP(gra,time_span2,num_threads);
     // std::cout << "Finished Graph Partionning" << std::endl;
     //Dijk Seq
     high_resolution_clock::time_point t1 = high_resolution_clock::now();
@@ -144,5 +150,7 @@ void test_seq_vs_graph_part(){
     }
     std::cout <<"... Success rate: "<<(double) counter/gra->number_nodes*100 << std::endl;
     std::cout << "Ratio = " << time_span2.count()/time_span1.count() << std::endl;
-    std::cout << "Time TwoQ Seq: " << time_span1.count() << " , Time TwoQ Parallel: " << time_span2.count() << std::endl;
+    std::cout << "Time TwoQ Seq: " << time_span1.count() << std::endl;
+    std::cout<< "Time TwoQ Parallel: " << time_span2.count() << std::endl;
+    }
 }

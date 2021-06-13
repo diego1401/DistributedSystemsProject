@@ -1,9 +1,5 @@
 #pragma once
-#include<iostream>
-#include<algorithm>
-#include <vector>
-#include<math.h>
-#include <climits>
+
 #include "../Graph.hpp"
 // #define MAT_DEBUG
 
@@ -19,7 +15,7 @@ class Dijkstra{
         Dijkstra(Graph *g, int src){
             this->graph = Adj_Matrix(g);
             this->source = src;
-            this->N = g->Nodes.size();
+            this->N = g->number_nodes;
             this->distance = new unsigned int[this->N];
             this->check = new bool[this->N];
 
@@ -28,14 +24,12 @@ class Dijkstra{
             #endif
         }
         int minDistance(){
-            int min = INT_MAX; 
+            int min = std::numeric_limits<unsigned int>::max(); 
             int index=0;
             for (int i=0; i < this->N; i++){
                 if(this->check[i]== false && this->distance[i] < min){
-                    if (this->distance[i] > 0){
-                        min = this->distance[i]; 
-                        index = i;
-                    }
+                    min = this->distance[i]; 
+                    index = i;
 
                 }
             }
@@ -43,7 +37,7 @@ class Dijkstra{
         }
         void compute(){
             for (int i=0; i < N; i++){
-                this->distance[i] = INT_MAX; this->check[i] = false;
+                this->distance[i] = std::numeric_limits<unsigned int>::max(); this->check[i] = false;
             }
             this->distance[this->source] = 0;
             // this->check[this->source] = true;
@@ -53,8 +47,9 @@ class Dijkstra{
                 this->check[minindex] = true;
                 for (int j=0; j <N; j++){
                     // std::cout << this->graph[minindex + this->N*j] << " index: " << std::endl;
-                    if(!this->check[j] && this->graph[index(minindex, j,N)] >0
-                        &&this->distance[minindex] != INT_MAX && 
+                    if(!this->check[j]
+                        &&this->distance[minindex] != std::numeric_limits<unsigned int>::max() && 
+                        this->graph[index(minindex,j,N)] != std::numeric_limits<unsigned int>::max() &&
                         this->distance[minindex] + this->graph[index(minindex,j,N)] < this->distance[j]) {
                             // std::cout << minindex << std::endl;
                             // std::cout << N<< std::endl;

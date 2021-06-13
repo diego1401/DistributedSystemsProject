@@ -96,29 +96,39 @@ void ComputationStep(TwoQueue& Q,Graph* G, SubGraph* Gk, unsigned int* d,idx_t* 
     sendTag[Gk->key] = 0;
     while(!Q.is_empty()){
         Node* i = Q.remove();
-        // for each successor node j of i, in current subgraph
-        std::vector<Edge> Succ = i->Neighbors; unsigned int curr_dis = d[i->key];          
-        for(int j=0;j<Succ.size();j++){
-            int neighbor_key = Succ[j].to->key; 
-            if(d[neighbor_key]> curr_dis + Succ[j].weight){
-                d[neighbor_key] = curr_dis + Succ[j].weight; Q.insert(Succ[j].to);
-            }
-        }
+        unsigned int curr_dis = d[i->key]; 
         
         //Dealing with Boundary Nodes
-        Node* i_prime = Gk->getBoundaryNode(i->key);
-        if(i_prime != NULL){
-        Succ = i_prime->Neighbors;
-        for(int j=0;j<Succ.size();j++){ //iterate over the neighbors of i in all graphs
-            int neighbor_key = Succ[j].to->key;
-            if(d[neighbor_key]> curr_dis + Succ[j].weight){
-                sendTag[Gk->key] = 1;
-                local_message_array[part[neighbor_key]].push_back(Succ[j]);//send the edge that connects the 2 subgraphs 
-                //to the subgraph of the neighbor 
-            }  
+        if(part[i->key]==Gk->key){
+        if(Gk->BoundaryNodes[i->key]){
+            std::vector<Edge> Succ = i->Neighbors;
+            for(int j=0;j<Succ.size();j++){ //iterate over the neighbors of i in all graphs
+                int neighbor_key = Succ[j].to->key;
+                int graph_id = part[neighbor_key];
+                if(d[neighbor_key]> curr_dis + Succ[j].weight){
+                    if(graph_id == Gk->key){
+                        d[neighbor_key] = curr_dis + Succ[j].weight; Q.insert(Succ[j].to); // local node
+                    }
+                    else{
+                        sendTag[Gk->key] = 1;
+                        local_message_array[graph_id].push_back(Succ[j]);//send the edge that connects the 2 subgraphs 
+                        //to the subgraph of the neighbor 
+                    }
+                    
+                }  
+            }
         }
-    }
-    }
+        else{
+            // for each successor node j of i, in current subgraph
+            std::vector<Edge> Succ = i->Neighbors;          
+            for(int j=0;j<Succ.size();j++){
+                int neighbor_key = Succ[j].to->key; 
+                if(d[neighbor_key]> curr_dis + Succ[j].weight){
+                    d[neighbor_key] = curr_dis + Succ[j].weight; Q.insert(Succ[j].to);
+                }
+            }
+        }
+    }}
 
     //sending messages
     for(int k=0;k<local_message_array.size();k++){
@@ -166,8 +176,9 @@ void CommunicationStep(TwoQueue& Q, std::vector<std::vector<Edge>>& MessageArray
 }
 
 
-unsigned int* Parallel_SSSP(Graph* G,duration<double>& time_span2,int starting_key=0){
-    int num_threads = 2; std::vector<std::thread> threads(num_threads);
+unsigned int* Parallel_SSSP(Graph* G,duration<double>& time_span2,int num_threads,int starting_key=0){
+    // int num_threads = 4; 
+    std::vector<std::thread> threads(num_threads);
     //Do graph partionning 
     idx_t nParts  = (idx_t) num_threads; idx_t objval;
     idx_t nVertices = (idx_t)G->number_nodes; idx_t* part = (idx_t *) malloc(nVertices*sizeof(idx_t));
