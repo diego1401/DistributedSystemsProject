@@ -244,7 +244,7 @@ OPENMP:BOOL=OFF
 PCRE:BOOL=OFF
 
 //build a shared library
-SHARED:BOOL=1
+SHARED:BOOL=FALSE
 
 //Dependencies for the target
 metis_LIB_DEPENDS:STATIC=general;m;

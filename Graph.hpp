@@ -23,6 +23,8 @@
 #include <vector>
 #include<math.h>
 #include <climits>
+#include <iostream>
+#include <fstream>
 using namespace std::chrono;
 
 //our classes
@@ -66,10 +68,9 @@ class Graph{
     std::vector<Edge> Edges;
     int number_nodes;
     //For the Graph Partioning Library
-    idx_t *xadj;
-    idx_t *adjncy;
-    idx_t *adjwgt; //WEIGHTS MUST BE GREATER THAN 0
+    idx_t *xadj; idx_t *adjncy; idx_t *adjwgt; //WEIGHTS MUST BE GREATER THAN 0
     Graph(){};
+
     Graph(int N){
         this->number_nodes = N;
         for(int i=0;i<this->number_nodes;i++){
@@ -78,29 +79,11 @@ class Graph{
 
     };
 
-    // Graph(std::string filename){
-    //     this->number_nodes = 0;
-    //     printf("Creating Graph\n");
-    //     this->read_file(filename);
-    //     printf("Done!\nFilling neighbors\n");
-    //     this->fill_neighbors();
-    //     printf("Done!\nFilling METIS values");
-    //     this->fill_METIS_values();
-    //     printf("Done\n");
-    // }
-
     ~Graph(){
         free(xadj);
         free(adjncy);
         free(adjwgt);
     }
-
-    // Node* ret_node_at(int key){
-    //     for(int i=0;i<this->Nodes.size();i++){
-    //         if(this->Nodes[i]->key == key) return this->Nodes[i];
-    //     }
-    //     return NULL;
-    // }
 
     Node* ret_node_at(int key){
         return this->Nodes[key];
@@ -110,63 +93,12 @@ class Graph{
         return ret_node_at(key)!= NULL;
     }
 
-    // bool add_node(Node* n){
-
-    //     if(this->Nodes.empty()) {
-    //        this->Nodes.push_back(n);
-    //        this->number_nodes ++;
-    //     //    printf("Node added!\n");
-    //     }
-    //     bool found = false;
-    //     Node* k;
-    //     for(int i=0;i<this->Nodes.size();i++){
-    //         k = this->Nodes[i];
-    //         if(k->key == n->key){
-    //             found = true;
-    //             return true;
-    //         }
-    //     }
-    //     if(!found){
-    //         this->number_nodes ++;
-    //         this->Nodes.push_back(n);
-    //         return false;
-    //         // printf("Node added!\n");
-    //     } 
-    //     return false;
-    // }
-
     void fill_neighbors(){
         for(int i=0;i<this->Edges.size();i++){
             // this->Edges[i].print();
             this->Edges[i].from->Neighbors.push_back(this->Edges[i]);
         }
     }
-
-    // void read_file(std::string filename){
-    //     unsigned int MAX_WEIGHT = 10000;
-    //     std::ifstream file(filename);
-    //     if (file.is_open()) {
-    //         //get rid of useless lines
-    //         int lines_to_skip = 0;
-    //         std::string line;
-    //         for(int j=0;j<lines_to_skip;j++){
-    //             std::getline(file,line);
-    //         }
-    //         Node* to,*from;
-    //         Edge e;
-    //         int id1,id2,w;
-    //         while (file >> id1 >> id2) {
-    //             to = new Node(id1);
-    //             from = new Node(id2);
-    //             this->add_node(to);
-    //             this->add_node(from);
-    //             w = rand() % MAX_WEIGHT + 1;
-    //             e = Edge(from,to,w);
-    //             this->Edges.push_back(e);
-    //         }
-    //         file.close();
-    //     }
-    // }
 
     void random_nodes(int N,unsigned int maxweights){
         //Give Random Weights to their edges
@@ -194,7 +126,6 @@ class Graph{
         // (u,v) and (v,u) Independently 
         adjncy = (idx_t*) malloc(Edges.size() * sizeof(idx_t));
         adjwgt = (idx_t*) malloc(Edges.size() * sizeof(idx_t));
-        //vwgt = to be done...
 
         //We iterate over the nodes, and over its neighbors
         //because we need to store indep (u,v) and (v,u)
@@ -255,25 +186,17 @@ class SubGraph: public  Graph{
         this->number_nodes = this->Main_Graph->number_nodes;
         this->Nodes = this->Main_Graph->Nodes;
         std::vector<bool> BoundaryNodestmp(this->number_nodes);
-        //we add only the Edges that involve nodes of the subgraph
+        //It is useful to identify the Boundary Nodes
         for(int i=0;i<_Main_G->Edges.size();i++){
-            //The associated k of the nodes has to be the same as for the graph
             int key_from = _Main_G->Edges[i].from->key;
             int key_to = _Main_G->Edges[i].to->key;
-            // Node *from = this->ret_node_at(key_from);
-            // Node *to = this->ret_node_at(key_to);
-            
-            // if(part[key_from] == this-> key && part[key_to] == this-> key){
-            //     NodeBelongstmp[key_from] = true;
-            //     NodeBelongstmp[key_to] = true;
-            //    }
+
             if(part[key_from] == this-> key){
                 BoundaryNodestmp[key_from] = true;
             }
             else if(part[key_to] == this-> key){
                 BoundaryNodestmp[key_to] = true;
             }
-            // std::cout << std::endl;
         }
         this->BoundaryNodes = BoundaryNodestmp;
 
@@ -299,8 +222,6 @@ unsigned int *Adj_Matrix(Graph* G){
         }
     }
     for(int i=0;i<m;i++){
-    //    printf("%d,%d,%d\n",G->Edges[i].from->key,G->Edges[i].to->key,G->Edges[i].weight);
-    //    Matrix[G->Edges[i].from->key + n*G->Edges[i].to->key] = G->Edges[i].weight; 
         Matrix[index(G->Edges[i].from->key,G->Edges[i].to->key,n)] = G->Edges[i].weight; 
     }
     return Matrix;

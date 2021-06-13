@@ -127,7 +127,7 @@ programs/cmpfillin: programs/CMakeFiles/cmpfillin.dir/cmpfillin.c.o
 programs/cmpfillin: programs/CMakeFiles/cmpfillin.dir/io.c.o
 programs/cmpfillin: programs/CMakeFiles/cmpfillin.dir/smbfactor.c.o
 programs/cmpfillin: programs/CMakeFiles/cmpfillin.dir/build.make
-programs/cmpfillin: libmetis/libmetis.dylib
+programs/cmpfillin: libmetis/libmetis.a
 programs/cmpfillin: programs/CMakeFiles/cmpfillin.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/Users/Diego/Documents/SEM6/CSE305/CSE305_project/metis-5.1.0/build/Darwin-x86_64/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Linking C executable cmpfillin"
 	cd /Users/Diego/Documents/SEM6/CSE305/CSE305_project/metis-5.1.0/build/Darwin-x86_64/programs && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/cmpfillin.dir/link.txt --verbose=$(VERBOSE)

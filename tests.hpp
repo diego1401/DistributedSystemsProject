@@ -110,7 +110,8 @@ void test_veryeasy_graph_part(){
     G->fill_METIS_values();
     using namespace std::chrono;
     duration<double> time_span2;
-    unsigned int* d = Parallel_SSSP(G,time_span2,2);
+    duration<double> total_CS ; duration<double> total_comS;
+    unsigned int* d = Parallel_SSSP(G,time_span2,2,total_CS,total_comS);
     std::cout << "Graph Partionning result: " << " ";
     for(int i=0;i<G->number_nodes;i++){
         std::cout << d[i] << " ";
@@ -120,8 +121,17 @@ void test_veryeasy_graph_part(){
 }   
 
 void test_seq_vs_graph_part(){
-    for(int num_threads=2;num_threads<3;num_threads++){
     int N = 1000;
+    std::ofstream myfile ("log_test_seq_vs_graph_part"+std::to_string(N)+".txt");
+    if (myfile.is_open())
+    {
+    
+    myfile << "Graph composed of " << " nodes\n";
+    myfile << "num_threads,time,timeCS,time_comS\n";
+    
+    
+    for(int num_threads=2;num_threads<16;num_threads++){
+    duration<double> total_CS= duration<double>::zero() ; duration<double> total_comS= duration<double>::zero() ;
     Graph *gra =  new Graph(N);
     gra->random_nodes(N,20);
     gra->fill_METIS_values();
@@ -129,7 +139,7 @@ void test_seq_vs_graph_part(){
     using namespace std::chrono;
     unsigned int* d,*d1;
     duration<double> time_span2;
-    d = Parallel_SSSP(gra,time_span2,num_threads);
+    d = Parallel_SSSP(gra,time_span2,num_threads,total_CS,total_comS);
     // std::cout << "Finished Graph Partionning" << std::endl;
     //Dijk Seq
     high_resolution_clock::time_point t1 = high_resolution_clock::now();
@@ -152,5 +162,8 @@ void test_seq_vs_graph_part(){
     std::cout << "Ratio = " << time_span2.count()/time_span1.count() << std::endl;
     std::cout << "Time TwoQ Seq: " << time_span1.count() << std::endl;
     std::cout<< "Time TwoQ Parallel: " << time_span2.count() << std::endl;
+    myfile << num_threads << "," << time_span2.count() <<"," << total_CS.count() << "," << total_comS.count() << "\n";
+    }
+    myfile.close();
     }
 }
