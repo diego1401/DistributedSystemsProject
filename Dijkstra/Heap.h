@@ -1,8 +1,9 @@
-#include <vector>
+#pragma once
 #include <climits>
 #include <algorithm>
 #include <map>
-#include "./btree/btree_set.h"
+// #include "./btree/btree_set.h"
+
 struct Element{
     int index;
     double value;
@@ -37,6 +38,7 @@ class Heap{
     }
 
     Element returnMin(){
+        // std::cout << this->queue.front().index << " value = " << this->queue.front().value << std::endl;
         return this->queue.front();
     }
 
@@ -46,15 +48,26 @@ class Heap{
     }
 
     void DecreaseKey(int key, int newvalue){
+        int k;
         for (int i = 0; i < this->queue.size(); i++){
             if (this->queue[i].index == key){
                 this->queue[i].value = newvalue;
+                k = i;
+                break;
+                // this->queue[i].value = INT_MAX;
             }
         }
-        std::make_heap(this->queue.begin(), this->queue.end(), ElementComapre());
+        // this->push(Element(key, newvalue));
+        std::push_heap(this->queue.begin(), this->queue.begin() + k+ 1, ElementComapre());
+        // std::make_heap(this->queue.begin(), this->queue.end(), ElementComapre());
     }
 
     bool isEmpty(){
         return this->queue.size();
+    }
+    void printqueue(){
+        for (int i=0; i< this->queue.size(); i++){
+            std::cout << "Index = " << queue[i].index << " and value = " << queue[i].value << std::endl;
+        }
     }
 };

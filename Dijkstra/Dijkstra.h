@@ -5,7 +5,7 @@
 #include<math.h>
 #include <climits>
 #include "../Graph.hpp"
-
+// #define MAT_DEBUG
 
 class Dijkstra{
     public:
@@ -14,15 +14,18 @@ class Dijkstra{
         int N;
         bool* check;
         // Graph* graph;
-        int* graph;
+        unsigned int* graph;
         Dijkstra() {}
         Dijkstra(Graph *g, int src){
             this->graph = Adj_Matrix(g);
             this->source = src;
             this->N = g->Nodes.size();
-            // print_matrix(this->graph, N);
             this->distance = new unsigned int[this->N];
             this->check = new bool[this->N];
+
+            #ifdef MAT_DEBUG
+            print_matrix(this->graph, N);
+            #endif
         }
         int minDistance(){
             int min = INT_MAX; 
