@@ -87,7 +87,7 @@ unsigned int* Sequential_Dijkstra_Two_Queue(Graph* G,int key){
     parallel version of the code
 */
 
-void ComputationStep(TwoQueue& Q,Graph* G, SubGraph* Gk, unsigned int* d,idx_t* part,bool& Done,
+void ComputationStep(TwoQueue& Q,Graph* G, SubGraph* Gk, unsigned int* d,idx_t* part,
               std::vector<int>& sendTag, std::vector<std::vector<Edge>>& MessageArray, std::vector<std::mutex>& message_lock,
               int num_threads){
 
@@ -96,29 +96,40 @@ void ComputationStep(TwoQueue& Q,Graph* G, SubGraph* Gk, unsigned int* d,idx_t* 
     sendTag[Gk->key] = 0;
     while(!Q.is_empty()){
         Node* i = Q.remove();
-        // for each successor node j of i, in current subgraph
-        std::vector<Edge> Succ = i->Neighbors; unsigned int curr_dis = d[i->key];          
-        for(int j=0;j<Succ.size();j++){
-            int neighbor_key = Succ[j].to->key; 
-            if(d[neighbor_key]> curr_dis + Succ[j].weight){
-                d[neighbor_key] = curr_dis + Succ[j].weight; Q.insert(Succ[j].to);
+        unsigned int curr_dis = d[i->key]; 
+        
+        
+        if(part[i->key]==Gk->key){
+        //Dealing with Boundary Nodes
+        if(Gk->BoundaryNodes[i->key]){
+            std::vector<Edge> Succ = i->Neighbors;
+            for(int j=0;j<Succ.size();j++){ //iterate over the neighbors of i in all graphs
+                int neighbor_key = Succ[j].to->key;
+                if(d[neighbor_key]> curr_dis + Succ[j].weight){
+                    int graph_id = part[neighbor_key];
+                    if(graph_id == Gk->key){
+                        d[neighbor_key] = curr_dis + Succ[j].weight; Q.insert(Succ[j].to); // local node
+                    }
+                    else{
+                        sendTag[Gk->key] = 1;
+                        local_message_array[graph_id].push_back(Succ[j]);//send the edge that connects the 2 subgraphs 
+                        //to the subgraph of the neighbor 
+                    }
+                    
+                }  
             }
         }
-        
-        //Dealing with Boundary Nodes
-        Node* i_prime = Gk->getBoundaryNode(i->key);
-        if(i_prime != NULL){
-        Succ = i_prime->Neighbors;
-        for(int j=0;j<Succ.size();j++){ //iterate over the neighbors of i in all graphs
-            int neighbor_key = Succ[j].to->key;
-            if(d[neighbor_key]> curr_dis + Succ[j].weight){
-                sendTag[Gk->key] = 1;
-                local_message_array[part[neighbor_key]].push_back(Succ[j]);//send the edge that connects the 2 subgraphs 
-                //to the subgraph of the neighbor 
-            }  
+        else{
+            // for each successor node j of i, in current subgraph
+            std::vector<Edge> Succ = i->Neighbors;          
+            for(int j=0;j<Succ.size();j++){
+                int neighbor_key = Succ[j].to->key; 
+                if(d[neighbor_key]> curr_dis + Succ[j].weight){
+                    d[neighbor_key] = curr_dis + Succ[j].weight; Q.insert(Succ[j].to);
+                }
+            }
         }
-    }
-    }
+    }}
 
     //sending messages
     for(int k=0;k<local_message_array.size();k++){
@@ -136,9 +147,7 @@ void ComputationStep(TwoQueue& Q,Graph* G, SubGraph* Gk, unsigned int* d,idx_t* 
 }
 
 void CommunicationStep(TwoQueue& Q, std::vector<std::vector<Edge>>& MessageArray,
-                std::vector<std::mutex>& lock_dist, std::vector<std::mutex>& message_lock,
-                SubGraph* Gk, unsigned int* d){
-                std::lock_guard<std::mutex> lk(message_lock[Gk->key]);
+            std::vector<std::mutex>& lock_dist, SubGraph* Gk, unsigned int* d){
             while(!(MessageArray[Gk->key].empty())){
                 Edge e = MessageArray[Gk->key].back(); 
                 MessageArray[Gk->key].pop_back();
@@ -166,8 +175,8 @@ void CommunicationStep(TwoQueue& Q, std::vector<std::vector<Edge>>& MessageArray
 }
 
 
-unsigned int* Parallel_SSSP(Graph* G,duration<double>& time_span2,int starting_key=0){
-    int num_threads = 2; std::vector<std::thread> threads(num_threads);
+unsigned int* Parallel_SSSP(Graph* G,duration<double>& time_span2,int num_threads,duration<double>& total_CS , duration<double>& total_comS,int starting_key=0){
+    std::vector<std::thread> threads(num_threads);
     //Do graph partionning 
     idx_t nParts  = (idx_t) num_threads; idx_t objval;
     idx_t nVertices = (idx_t)G->number_nodes; idx_t* part = (idx_t *) malloc(nVertices*sizeof(idx_t));
@@ -190,13 +199,12 @@ unsigned int* Parallel_SSSP(Graph* G,duration<double>& time_span2,int starting_k
     }
     Node* start; start = G->ret_node_at(starting_key); d[start->key] = 0;
 
-    bool Done = false;
     std::vector<int> sendTag(num_threads);
-    std::vector<int> ProcessesDone(num_threads); std::vector<std::vector<Edge>> MessageArray(num_threads);
+    std::vector<std::vector<Edge>> MessageArray(num_threads);
     std::vector<std::mutex> lock(num_threads); std::vector<std::mutex> lock_dist(n); 
     
     high_resolution_clock::time_point t1 = high_resolution_clock::now();
-    duration<double> total_CS ; duration<double> total_comS;
+    
     //init 
     std::vector<TwoQueue> Q_s(num_threads); 
     for(int i=0;i<Q_s.size();i++){
@@ -209,7 +217,7 @@ unsigned int* Parallel_SSSP(Graph* G,duration<double>& time_span2,int starting_k
         high_resolution_clock::time_point tmp1 = high_resolution_clock::now();
         for(unsigned long i=0;i<(num_threads);++i)
         {
-            threads[i]=std::thread(ComputationStep,std::ref(Q_s[i]),G,Graphs[i],d,part, std::ref(Done),
+            threads[i]=std::thread(ComputationStep,std::ref(Q_s[i]),G,Graphs[i],d,part,
                                     std::ref(sendTag),std::ref(MessageArray),std::ref(lock),
                                     num_threads);
         }
@@ -227,7 +235,8 @@ unsigned int* Parallel_SSSP(Graph* G,duration<double>& time_span2,int starting_k
             high_resolution_clock::time_point tmp1 = high_resolution_clock::now();
             for(unsigned long i=0;i<(num_threads);++i)
                 {
-                    threads[i]=std::thread(CommunicationStep,std::ref(Q_s[i]),std::ref(MessageArray),std::ref(lock_dist),std::ref(lock),Graphs[i],d);
+                    threads[i]=std::thread(CommunicationStep,std::ref(Q_s[i]),std::ref(MessageArray),
+                                        std::ref(lock_dist),Graphs[i],d);
                 }
             for(unsigned long i=0;i<(num_threads);++i)
                 {

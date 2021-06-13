@@ -111,7 +111,7 @@ graphchk_EXTERNAL_OBJECTS =
 programs/graphchk: programs/CMakeFiles/graphchk.dir/graphchk.c.o
 programs/graphchk: programs/CMakeFiles/graphchk.dir/io.c.o
 programs/graphchk: programs/CMakeFiles/graphchk.dir/build.make
-programs/graphchk: libmetis/libmetis.dylib
+programs/graphchk: libmetis/libmetis.a
 programs/graphchk: programs/CMakeFiles/graphchk.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/Users/Diego/Documents/SEM6/CSE305/CSE305_project/metis-5.1.0/build/Darwin-x86_64/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Linking C executable graphchk"
 	cd /Users/Diego/Documents/SEM6/CSE305/CSE305_project/metis-5.1.0/build/Darwin-x86_64/programs && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/graphchk.dir/link.txt --verbose=$(VERBOSE)

@@ -121,7 +121,7 @@ file(REMOVE_RECURSE
   "CMakeFiles/metis.dir/util.c.o.d"
   "CMakeFiles/metis.dir/wspace.c.o"
   "CMakeFiles/metis.dir/wspace.c.o.d"
-  "libmetis.dylib"
+  "libmetis.a"
   "libmetis.pdb"
 )
 
