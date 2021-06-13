@@ -7,8 +7,9 @@
 struct Element{
     int index;
     double value;
+    Node *node;
     Element(){}
-    Element(int i, double val){this->index = i; this->value = val;}
+    Element(int i, double val, Node *node){this->index = i; this->value = val; this->node =node; }
 };
 
 class ElementComapre{
@@ -22,13 +23,13 @@ class ElementComapre{
 class Heap{
     public:
     std::vector<Element> queue;
-    std::map<int, int> index_map;
+    // std::map<int, int> index_map;
     Heap() {}
     Heap(int N, std::vector<Element> init){
         this->queue.resize(N);
         for (int i=0; i< init.size(); i++){
             queue[i] = init[i];
-            index_map[init[i].index] = i;
+            // index_map[init[i].index] = i;
         }
         std::make_heap(this->queue.begin(), this->queue.end(), ElementComapre());
     }
@@ -52,11 +53,14 @@ class Heap{
         for (int i = 0; i < this->queue.size(); i++){
             if (this->queue[i].index == key){
                 this->queue[i].value = newvalue;
+                // std::cout << index_map[key] << " and " << queue[i].index << std::endl;
                 k = i;
                 break;
                 // this->queue[i].value = INT_MAX;
             }
         }
+        // this->queue[index_map[key]].value = newvalue;
+        // std::push_heap(this->queue.begin(), this->queue.begin() + index_map[key]+ 1, ElementComapre());
         // this->push(Element(key, newvalue));
         std::push_heap(this->queue.begin(), this->queue.begin() + k+ 1, ElementComapre());
         // std::make_heap(this->queue.begin(), this->queue.end(), ElementComapre());

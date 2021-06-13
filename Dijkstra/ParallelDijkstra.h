@@ -13,23 +13,24 @@
 // #define DEBUGMODE
 #ifdef DEBUGMODE
 #define DEBUG
-#define DEBUG2
-#define QueueDebug
+// #define DEBUG2
+// #define QueueDebug
 #define LDEBUG
 #define INFLOOP
 #endif
 
-std::map<int,unsigned int> minOutDistance(unsigned int *g, int N){
+std::map<int,unsigned int> minOutDistance(unsigned int *g, int N, Graph *gra){
     std::map<int,unsigned int> dist;
     for (int i= 0; i < N ; i++ ){
-        int minweight = INT_MAX;
-            for (int j = 0; j < N; j++){
+        unsigned int minweight = std::numeric_limits<unsigned int>::max();
+        Node *node = gra->Nodes[i];
+            for (int j = 0; j < node->Neighbors.size(); j++){
                 int k = index(i, j,N);
-                if( g[k] < minweight && g[k] > 0){
-                    minweight = g[k];
+                if( node->Neighbors[j].weight < minweight && node->Neighbors[j].weight > 0){
+                    minweight = node->Neighbors[j].weight;
                 }
             }
-        if (minweight == INT_MAX) minweight = 0;
+        if (minweight == std::numeric_limits<unsigned int>::max()) minweight = 0;
         dist[i] = minweight;
     }
     return dist;
@@ -40,9 +41,10 @@ class DijkQueue{
         Heap queue_star;
         std::map<int,unsigned int> delta;
         int begin, end, n, N;
-        std::set<int> R;
+        std::set<Node*> R;
         std::vector<std::tuple<int,unsigned int>> Req;
         std::mutex lock;
+        Graph *gra;
         unsigned int *graph;
         DijkQueue(const DijkQueue &other){
             this->queue = other.queue;
@@ -55,27 +57,29 @@ class DijkQueue{
             this->R = other.R;
             this->Req = other.Req;
             this->graph = other.graph;
+            this->gra = other.gra;
 
         }
         DijkQueue() {}
-        DijkQueue(unsigned int *tentative, int beg, int end, std::map<int,unsigned int> delta, unsigned int *gra, int N){
+        DijkQueue(unsigned int *tentative, int beg, int end, std::map<int,unsigned int> delta, unsigned int *gra, int N, Graph *g){
             this->begin = beg; this->end = end;
             this->n = end-beg ;
             this->delta = delta;
             this->graph = gra;
             this->N = N;
+            this->gra = g;
             setqueue(tentative);
         }
         // ~DijkQueue() {}
         void setqueue(unsigned int * tent){
             std::vector<Element> q, qstar;
             for (int i= 0; i < this->n; i++ ){
-                Element ele = Element(this->begin + i, tent[begin+ i]);
-                int starvalue;
-                if (tent[begin + i] == INT_MAX){
-                    starvalue = INT_MAX;
-                } else starvalue = tent[begin+ i]+ this->delta[begin+i];
-                Element elestar = Element(this->begin + i, starvalue);
+                Element ele = Element(this->gra->Nodes[begin + i]->key, tent[this->gra->Nodes[begin + i]->key], this->gra->Nodes[begin+i]);
+                unsigned int starvalue;
+                if (tent[this->gra->Nodes[begin + i]->key] == std::numeric_limits<unsigned int>::max()){
+                    starvalue = std::numeric_limits<unsigned int>::max();
+                } else starvalue = tent[this->gra->Nodes[begin + i]->key]+ this->delta[this->gra->Nodes[begin + i]->key];
+                Element elestar = Element(this->gra->Nodes[begin + i]->key, starvalue, this->gra->Nodes[begin+i]);
                 q.push_back(ele);
                 qstar.push_back(elestar);
             }
@@ -86,17 +90,17 @@ class DijkQueue{
             this->printqueue();
             #endif
         }
-        void remove_tent(int bound){
+        void remove_tent(unsigned int bound){
             for (int i = 0; i < this->queue.queue.size(); i++){
                 if (this->queue.returnMin().value <= bound){
-                    this->R.insert(this->queue.returnMin().index);
+                    this->R.insert(this->queue.returnMin().node);
                     this->queue.pop();
                 }
                 else break;
             }
             for (int i = 0; i < this->queue_star.queue.size(); i++){
                 if (this->queue_star.returnMin().value <= bound){
-                    this->R.insert(this->queue_star.returnMin().index);
+                    this->R.insert(this->queue_star.returnMin().node);
                     this->queue_star.pop();
                 }
                 else break;
@@ -110,15 +114,16 @@ class DijkQueue{
             #endif
         }
         void find_distances(unsigned int *glbtent){
-            std::set<int>::iterator itr;
+            std::set<Node*>::iterator itr;
             for (itr = this->R.begin(); itr!= this->R.end(); itr++){
-                int ind = *itr;
-                for (int j=0; j < this->N; j++){
-                    int k = index(ind,j,this->N);
+                Node *ind = *itr;
+                for (int j=0; j < ind->Neighbors.size(); j++){
+                    // int k = index(ind,j,this->N);
+                    // std::cout << ind->key << " and " <<ind->Neighbors[j].weight << std::endl;
                     unsigned int reqval;
-                    if (glbtent[ind] == INT_MAX) reqval = INT_MAX;
-                    else reqval = glbtent[ind] + graph[k];
-                    Req.push_back(std::make_tuple(j,reqval));
+                    if (glbtent[ind->key] == std::numeric_limits<unsigned int>::max()) reqval = std::numeric_limits<unsigned int>::max();
+                    else reqval = glbtent[ind->key] + ind->Neighbors[j].weight;
+                    Req.push_back(std::make_tuple(ind->Neighbors[j].to->key,reqval));
                 }
             }
             #ifdef DEBUG2
@@ -157,17 +162,19 @@ class ParDijkstra{
         unsigned int *glbtent; 
         // std::mutex lock_list;
         std::vector<DijkQueue> Queues;
+        Graph *g;
         ParDijkstra(){}
         ParDijkstra(Graph *g, int src, int num_threads){
             this->source = src;
+            this->g = g;
             this->N = g->Nodes.size();
             this->num_threads = num_threads;
             this->queue_size = (N+num_threads - 1)/num_threads;
             this->graph = Adj_Matrix(g);
-            this->delta = minOutDistance(this->graph, this->N);
+            this->delta = minOutDistance(this->graph, this->N, this->g);
             this->glbtent = new unsigned int[this->N];
             this->threads.resize(this->num_threads);
-            std::fill_n(this->glbtent,this->N, INT_MAX);
+            std::fill_n(this->glbtent,this->N, std::numeric_limits<unsigned int>::max());
             this->glbtent[this->source] = 0;
 
             setqueue();
@@ -179,7 +186,7 @@ class ParDijkstra{
                 if (begin + queue_size > N) end = this->N;
                 else end = begin + queue_size;
                 
-                DijkQueue dq = DijkQueue(this->glbtent, begin, end, this->delta, this->graph, this->N);
+                DijkQueue dq = DijkQueue(this->glbtent, begin, end, this->delta, this->graph, this->N, this->g);
                 this->Queues.push_back(dq);
             }
         }
@@ -193,7 +200,7 @@ class ParDijkstra{
         }
 
         int returnMin(){
-            int min = INT_MAX;
+            unsigned int min = std::numeric_limits<unsigned int>::max();
             for (int i=0; i < this->Queues.size(); i++) {
 
                 #ifdef LDEBUG
@@ -203,9 +210,9 @@ class ParDijkstra{
                 std::cout << this->Queues[i].queue_star.queue.front().value << std::endl;
                 std::cout << std::endl;
                 #endif
-                int tempmin;
+                unsigned int tempmin;
                 if (!this->Queues[i].queue_star.isEmpty()){
-                    tempmin = INT_MAX;
+                    tempmin = std::numeric_limits<unsigned int>::max();
                 }else{
                     tempmin = this->Queues[i].queue_star.returnMin().value;
                 }
@@ -223,12 +230,13 @@ class ParDijkstra{
             // ParQueue.printqueue();
             // print_deltamap();
             #endif
+            int counter = 0;
             while (this->isEmpty()){
-                int L = this->returnMin(); //L is our global minimum of all elements in all Q_star
+                unsigned int L = this->returnMin(); //L is our global minimum of all elements in all Q_star
                 #ifdef DEBUG
                 if (counter > 3) break;
                 std::cout << L << std::endl;
-                if (L == INT_MAX) std::cout << "Error: Min value L not set properly" << std::endl;
+                if (L == std::numeric_limits<unsigned int>::max()) std::cout << "Error: Min value L not set properly" << std::endl;
                 // ParQueue.printqueue();
                 #endif
                 
@@ -239,7 +247,7 @@ class ParDijkstra{
                 std::for_each(this->threads.begin(),this->threads.end(),std::mem_fn(&std::thread::join));
                 #ifdef INFLOOP
                 counter +=1;
-                if (counter > 3) break;
+                if (counter > 10) break;
                 #endif
             }
 
