@@ -143,7 +143,7 @@ programs/mpmetis: programs/CMakeFiles/mpmetis.dir/cmdline_mpmetis.c.o
 programs/mpmetis: programs/CMakeFiles/mpmetis.dir/io.c.o
 programs/mpmetis: programs/CMakeFiles/mpmetis.dir/stat.c.o
 programs/mpmetis: programs/CMakeFiles/mpmetis.dir/build.make
-programs/mpmetis: libmetis/libmetis.dylib
+programs/mpmetis: libmetis/libmetis.a
 programs/mpmetis: programs/CMakeFiles/mpmetis.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/Users/Diego/Documents/SEM6/CSE305/CSE305_project/metis-5.1.0/build/Darwin-x86_64/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Linking C executable mpmetis"
 	cd /Users/Diego/Documents/SEM6/CSE305/CSE305_project/metis-5.1.0/build/Darwin-x86_64/programs && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/mpmetis.dir/link.txt --verbose=$(VERBOSE)
