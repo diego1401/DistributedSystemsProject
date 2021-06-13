@@ -3,20 +3,35 @@
 
 void test_sequential(){
     Graph *gra =  new Graph;
-    gra->random_nodes(6,4);
+    gra->random_nodes(10000,4);
     unsigned int* d;
+    using namespace std::chrono;
+    high_resolution_clock::time_point t1 = high_resolution_clock::now();
     d = Sequential_Dijkstra_Two_Queue(gra, 0);
+    high_resolution_clock::time_point t2 = high_resolution_clock::now();
+    duration<double> time_span1 = duration_cast<duration<double> >(t2 - t1);
 
     Dijkstra dijk = Dijkstra(gra, 0);
+    t1 = high_resolution_clock::now();
     dijk.compute();
-    std::cout << "Original" << " ";
-    dijk.print_dist();
-    std::cout << std::endl;
-    std::cout << "TwoQueue" << " ";
-    for(int i=0;i<6;i++){
-        std::cout << d[i] << " ";
+    t2 = high_resolution_clock::now();
+    duration<double> time_span2 = duration_cast<duration<double> >(t2 - t1);
+     std::cout << "Comparing" << " ";
+    for(int i=0;i<gra->number_nodes;i++){
+        if(d[i]!=dijk.distance[i]){
+            std::cout << "Fail!" ;
+        }
     }
-    std::cout << std::endl;
+    std::cout <<"... Success!" << std::endl;
+    std::cout << "Time TwoQ: " << time_span1.count() << " , Time Dijkstra: " << time_span2.count() << std::endl;
+    // std::cout << "Original" << " ";
+    // dijk.print_dist();
+    // std::cout << std::endl;
+    // std::cout << "TwoQueue" << " ";
+    // for(int i=0;i<6;i++){
+    //     std::cout << d[i] << " ";
+    // }
+    // std::cout << std::endl;
 }
 
 void test_fill_METIS_values(){
@@ -89,42 +104,45 @@ void test_veryeasy_graph_part(){
                 e5_2, e5_4};
     G->fill_neighbors();
     G->fill_METIS_values();
-    // unsigned int* d = Parallel_SSSP(G);
-    // std::cout << "Graph Partionning result: " << " ";
-    // for(int i=0;i<G->number_nodes;i++){
-    //     std::cout << d[i] << " ";
-    // }
-    // std::cout << std::endl;
+    using namespace std::chrono;
+    duration<double> time_span2;
+    unsigned int* d = Parallel_SSSP(G,time_span2);
+    std::cout << "Graph Partionning result: " << " ";
+    for(int i=0;i<G->number_nodes;i++){
+        std::cout << d[i] << " ";
+    }
+    std::cout << std::endl;
 
 }   
 
 void test_seq_vs_graph_part(){
     Graph *gra =  new Graph;
-    gra->random_nodes(2000,20);
+    gra->random_nodes(1000,20);
     gra->fill_METIS_values();
     Dijkstra dijk = Dijkstra(gra, 0);
     using namespace std::chrono;
-    unsigned int* d;
+    unsigned int* d,*d1;
     duration<double> time_span2;
     d = Parallel_SSSP(gra,time_span2,0);
-    std::cout << "Finished Graph Partionning" << std::endl;
+    // std::cout << "Finished Graph Partionning" << std::endl;
     //Dijk Seq
     high_resolution_clock::time_point t1 = high_resolution_clock::now();
-    dijk.compute();
+    d1 = Sequential_Dijkstra_Two_Queue(gra, 0);
     high_resolution_clock::time_point t2 = high_resolution_clock::now();
     duration<double> time_span1 = duration_cast<duration<double> >(t2 - t1);
-    std::cout << "Finished Dijkstra" << std::endl;
-    // std::cout << "Original" << " ";
-    // dijk.print_dist();
-    // std::cout << std::endl;
-    //graph_part
-    
-    std::cout << "Comparing" << " ";
+    // std::cout << "Finished Seq" << std::endl;
+
+    std::cout << "Comparing" << std::endl;
+    double counter = 0;
     for(int i=0;i<gra->number_nodes;i++){
-        if(d[i]!=dijk.distance[i]){
-            std::cout << "Fail!" ;
+        if(d[i] == d1[i]){
+            counter += 1;
+        }
+        else{
+            std::cout << "Fail! : d = " << d[i] << " and d1 = "<< d1[i] << std::endl; 
         }
     }
-    std::cout <<"... Success!" << std::endl;
+    std::cout <<"... Success rate: "<<(double) counter/gra->number_nodes*100 << std::endl;
     std::cout << "Ratio = " << time_span2.count()/time_span1.count() << std::endl;
+    std::cout << "Time TwoQ Seq: " << time_span1.count() << " , Time TwoQ Parallel: " << time_span2.count() << std::endl;
 }

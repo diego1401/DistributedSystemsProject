@@ -16,6 +16,9 @@
 #include <atomic>   
 #include <condition_variable>
 #include <chrono>
+#include <functional>
+#include <numeric>
+using namespace std::chrono;
 
 //our classes
 class Edge; class Node; class Graph; class SubGraph;
@@ -40,11 +43,11 @@ class Node{
 
 class Edge{
     public:
-    Node* from; Node* to;int weight;
+    Node* from; Node* to;unsigned int weight;
 
     Edge(){};
 
-    Edge(Node* f,Node* t,int w){
+    Edge(Node* f,Node* t,unsigned int w){
         this->from = f; this->to = t; this->weight =w;
     }
     void print(){
@@ -124,7 +127,7 @@ class Graph{
     }
 
     void read_file(std::string filename){
-        int MAX_WEIGHT = 10000;
+        unsigned int MAX_WEIGHT = 10000;
         std::ifstream file(filename);
         if (file.is_open()) {
             //get rid of useless lines
@@ -149,17 +152,19 @@ class Graph{
         }
     }
 
-    void random_nodes(int N, int maxweights){
+    void random_nodes(int N,unsigned int maxweights){
         //Add N Nodes
         for(int i=0;i<N;i++){
             Node*node = new Node(i);
             this->add_node(node);
         }
         //Give Random Weights to their edges
-        int w;
+        unsigned int w;
         for(int i=0;i<N;i++){
             for(int j=0;j<N;j++){
                 w = rand()%N + 1; 
+                double coin = (double) rand()/RAND_MAX;
+                if (coin > 0.1) continue;
                 if(i==j) continue;
                 Node* from = this->ret_node_at(i);
                 Node* to = this->ret_node_at(j);
@@ -262,32 +267,46 @@ class SubGraph: public  Graph{
             int key_from = _Main_G->Edges[i].from->key;
             int key_to = _Main_G->Edges[i].to->key;
             // std::cout << key_from << "->" << key_to << "(" <<part[key_from] << "," << part[key_to] << ")";
-            if(part[key_from] == this-> key &&
-               part[key_to]   == this-> key){
-                //    std::cout << "added!" ;
-                   Node*to = new Node(key_to);
-                   Node*from = new Node(key_from);
-                   if(this->add_node(to)){
-                       to = this->ret_node_at(key_to);
-                   };
-
-                   if(this->add_node(from)){
+            Node *from,*to;
+            if(part[key_from] == this-> key){
+                from = new Node(key_from);
+                if(this->add_node(from)){
                        from = this->ret_node_at(key_from);
-                   };
-                   Edge e(from,to,_Main_G->Edges[i].weight);
-                   this->Edges.push_back(e);
+                }
+                
+            }
+            if(part[key_to] == this-> key){
+                to = new Node(key_to);
+                if(this->add_node(to)){
+                    to = this->ret_node_at(key_to);
+                }
+            }
+            if(part[key_from] == this-> key && part[key_to] == this-> key){
+                Edge e(from,to,_Main_G->Edges[i].weight);
+                this->Edges.push_back(e);
 
                }
+            else if(part[key_from] == this-> key){
+                this->BoundaryNodes.push_back(this->Main_Graph->ret_node_at(key_from));
+            }
+            else if(part[key_to] == this-> key){
+                this->BoundaryNodes.push_back(this->Main_Graph->ret_node_at(key_to));
+            }
             // std::cout << std::endl;
         }
         //Fill neighbors
         this->fill_neighbors();
         //Update the Boundary Nodes
-        this->UpdateBoundaryNodes();
+        // this->UpdateBoundaryNodes();
 
     }
 
-
+    Node* getBoundaryNode(int key){
+        for(int i=0;i<this->BoundaryNodes.size();i++){
+            if(this->BoundaryNodes[i]->key == key) return this->BoundaryNodes[i];
+        }
+        return NULL;
+    }
 };
 
 int index(int x, int y, int n){
