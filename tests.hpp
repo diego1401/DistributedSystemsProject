@@ -2,7 +2,7 @@
 #include "Dijkstra/Dijkstra.h"
 
 void test_sequential(){
-    int N = 10000;
+    int N = 20000;
     Graph *gra =  new Graph(N);
     gra->random_nodes(N,1000);
     // print_matrix(Adj_Matrix(gra),N);
@@ -121,8 +121,8 @@ void test_veryeasy_graph_part(){
 }   
 
 void test_seq_vs_graph_part(){
-    int N = 1000;
-    std::ofstream myfile ("log_test_seq_vs_graph_part"+std::to_string(N)+".txt");
+    int N = 20000;
+    std::ofstream myfile ("log_test_seq_vs_graph_part"+std::to_string(N)+"bis.txt");
     if (myfile.is_open())
     {
     
@@ -130,7 +130,7 @@ void test_seq_vs_graph_part(){
     myfile << "num_threads,time,timeCS,time_comS\n";
     
     
-    for(int num_threads=2;num_threads<16;num_threads++){
+    for(int num_threads=2;num_threads<8;num_threads++){
     duration<double> total_CS= duration<double>::zero() ; duration<double> total_comS= duration<double>::zero() ;
     Graph *gra =  new Graph(N);
     gra->random_nodes(N,20);
@@ -162,7 +162,7 @@ void test_seq_vs_graph_part(){
     std::cout << "Ratio = " << time_span2.count()/time_span1.count() << std::endl;
     std::cout << "Time TwoQ Seq: " << time_span1.count() << std::endl;
     std::cout<< "Time TwoQ Parallel: " << time_span2.count() << std::endl;
-    myfile << num_threads << "," << time_span2.count() <<"," << total_CS.count() << "," << total_comS.count() << "\n";
+    myfile << num_threads << "," << time_span2.count() <<"," << total_CS.count() << "," << total_comS.count() <<","<<time_span1.count() <<"\n";
     }
     myfile.close();
     }

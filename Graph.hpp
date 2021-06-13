@@ -108,7 +108,7 @@ class Graph{
                 if(i==j) continue;
                 w = rand()%N + 1; 
                 double coin = (double) rand()/RAND_MAX;
-                if (coin > 0.1) continue;
+                if (coin > 0.01) continue;
                 Node* from = this->ret_node_at(i);
                 Node* to = this->ret_node_at(j);
                 Edge e(from,to,w);
