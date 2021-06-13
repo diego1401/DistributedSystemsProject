@@ -1,3 +1,3 @@
 # CSE305_project
 
-This is the project
+Warning: Before running the test of the Graph-Partitioning algorithm one must install METIS
